@@ -1,99 +1,39 @@
-import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonValue
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import java.io.File
-import kotlin.system.exitProcess
 
-enum class TypeTypes(@get:JsonValue val type: String) {
-    STRING("string"),
-    INT("int"),
-    DOUBLE("double"),
-    BOOLEAN("boolean")
+fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMetricType>) {
+    items.forEach {
+        if (it.allowedValues == null) {
+            return@forEach
+        }
+        val enum = TypeSpec.enumBuilder(it.name)
+            .primaryConstructor(
+                FunSpec.constructorBuilder()
+                    .addParameter("name", String::class)
+                    .build()
+            )
+        it.allowedValues.forEach { enumValue ->
+            enum.addEnumConstant(
+                enumValue.toString().toUpperCase().replace(".", ""), TypeSpec.anonymousClassBuilder()
+                    .addSuperclassConstructorParameter("%S", enumValue.toString())
+                    .build()
+            )
+        }
+        output.addType(enum.build())
+    }
 }
 
-data class Type(
-    val name: String,
-    val description: String,
-    val type: TypeTypes?,
-    val allowedValues: List<Any>?
-)
-
-data class MetricType(val type: Type, val require: Boolean)
-
-enum class MetricUnit(@get:JsonValue val type: String) {
-    NONE("None"),
-    MILLISECONDS("Milliseconds"),
-    BYTES("Bytes"),
-    PERCENT("Percent"),
-    COUNT("Count")
-}
-
-data class Metadata(
-    val type: String,
-    val required: Boolean?
-)
-
-data class Metric(
-    val name: String,
-    val description: String,
-    val unit: MetricUnit?,
-    val metadata: List<Metadata>?
-)
-
-data class TelemetryDefinition(
-    val types: List<Type>,
-    val metrics: List<Metric>
-)
-
-fun parse(): TelemetryDefinition {
-    // TODO validate schema using json schema
-    try {
-        val mapper = jacksonObjectMapper()
-        return mapper.readValue(File("/Users/werlla/aws-toolkit-common/telemetry/telemetryDefinitions.json"))
-    } catch (e: Exception) {
-        System.err.println("Error while parsing: $e")
-        exitProcess(-1)
+fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition) {
+    items.metrics.forEach {
+        
     }
 }
 
 fun main(vararg args: String) {
     val telemetry = parse()
-    println(telemetry)
-    val greeterClass = ClassName("", "Greeter")
-    val file = FileSpec.builder("", "HelloWorld")
-        .addType(
-            TypeSpec.classBuilder("Greeter")
-                .primaryConstructor(
-                    FunSpec.constructorBuilder()
-                        .addParameter("name", String::class)
-                        .build()
-                )
-                .addProperty(
-                    PropertySpec.builder("name", String::class)
-                        .initializer("name")
-                        .build()
-                )
-                .addFunction(
-                    FunSpec.builder("greet")
-                        .addStatement("println(%P)", "Hello, \$name")
-                        .build()
-                )
-                .build()
-        )
-        .addFunction(
-            FunSpec.builder("main")
-                .addParameter("args", String::class, KModifier.VARARG)
-                .addStatement("%T(args[0]).greet()", greeterClass)
-                .build()
-        )
-        .build()
-
-    file.writeTo(System.out)
+    val output = FileSpec.builder("software.amazon.toolkits.telemetry", "HelloWorld")
+    generateTelemetryEnumTypes(output, telemetry.types)
+    generateRecordFunctions(output, telemetry)
+    output.build().writeTo(System.out)
 }
