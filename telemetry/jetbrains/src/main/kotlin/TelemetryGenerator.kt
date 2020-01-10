@@ -8,13 +8,30 @@ import com.squareup.kotlinpoet.TypeSpec
 import java.io.File
 import kotlin.system.exitProcess
 
-data class Metrics()
+data class Type()
 
-data class Types()
+enum class MetricUnit(val type: String) {
+    None("None"),
+    Milliseconds("Milliseconds"),
+    Bytes("Bytes"),
+    Percent("Percent"),
+    Count("Count")
+}
+
+data class Metadata(
+    val type: String,
+    val required: Boolean?
+)
+data class Metric(
+    val name: String,
+    val description: String,
+    val unit: MetricUnit?,
+    val metadata: List<Metadata>?
+)
 
 data class TelemetryDefinition(
-    val types: Types,
-    val metrics: Metrics
+    val types: List<Type>,
+    val metrics: List<Metric>
 )
 
 fun parse(): TelemetryDefinition {
