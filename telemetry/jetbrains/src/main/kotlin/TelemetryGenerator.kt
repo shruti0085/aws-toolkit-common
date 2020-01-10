@@ -26,7 +26,7 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
         if (it.allowedValues == null) {
             return@forEach
         }
-        val enum = TypeSpec.enumBuilder(it.name)
+        val enum = TypeSpec.enumBuilder(it.name.capitalize())
             .primaryConstructor(
                 FunSpec.constructorBuilder()
                     .addParameter("name", String::class)
@@ -63,7 +63,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                         items.types.find { it.name == metadata.type }
                             ?: throw IllegalStateException("Type ${metadata.type} on ${metric.name} not found in types!")
                     val typeName = if (telemetryMetricType.allowedValues != null) {
-                        ClassName(PACKAGE_NAME, telemetryMetricType.name.filterInvalidCharacters())
+                        ClassName(PACKAGE_NAME, telemetryMetricType.name.filterInvalidCharacters().capitalize())
                     } else {
                         telemetryMetricType.type?.getTypeFromType() ?: com.squareup.kotlinpoet.STRING
                     }.copy(nullable = metadata.required ?: false)
@@ -81,7 +81,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                     .addStatement("unit(%M.${(metric.unit ?: MetricUnit.NONE).name})", unit)
                     .addStatement("value(value)")
                 metric.metadata?.forEach {
-                    functionBuilder.addStatement("metadata(%S, %L.toString())", it.type, it.type)
+                    functionBuilder.addStatement("metadata(%S, %L.toString())", it.type.toLowerCase(), it.type)
                 }
                 functionBuilder.addStatement("}}")
                 namespace.addFunction(functionBuilder.build())
