@@ -1,14 +1,25 @@
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.squareup.kotlinpoet.TypeName
 import java.io.File
 import kotlin.system.exitProcess
 
 enum class TypeTypes(@get:JsonValue val type: String) {
-    STRING("string"),
-    INT("int"),
-    DOUBLE("double"),
-    BOOLEAN("boolean")
+    STRING("string") {
+        override fun getTypeFromType(): TypeName = com.squareup.kotlinpoet.STRING
+    },
+    INT("int") {
+        override fun getTypeFromType(): TypeName = com.squareup.kotlinpoet.INT
+    },
+    DOUBLE("double") {
+        override fun getTypeFromType(): TypeName = com.squareup.kotlinpoet.DOUBLE
+    },
+    BOOLEAN("boolean") {
+        override fun getTypeFromType(): TypeName = com.squareup.kotlinpoet.BOOLEAN
+    };
+
+    abstract fun getTypeFromType(): TypeName
 }
 
 data class TelemetryMetricType(
