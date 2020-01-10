@@ -1,3 +1,5 @@
+package software.amazon.toolkits.telemetry
+
 import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue

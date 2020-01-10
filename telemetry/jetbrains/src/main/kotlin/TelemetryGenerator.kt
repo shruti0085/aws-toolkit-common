@@ -1,3 +1,5 @@
+package software.amazon.toolkits.telemetry
+
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
