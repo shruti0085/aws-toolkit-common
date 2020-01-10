@@ -67,7 +67,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                     } else {
                         telemetryMetricType.type?.getTypeFromType() ?: com.squareup.kotlinpoet.STRING
                     }.copy(nullable = metadata.required ?: false)
-                    ParameterSpec(telemetryMetricType.name.filterInvalidCharacters(), typeName)
+                    ParameterSpec(telemetryMetricType.name.filterInvalidCharacters().toLowerCase(), typeName)
                 } ?: listOf()
                 functionBuilder
                     .addParameter("project", projectParameter)
