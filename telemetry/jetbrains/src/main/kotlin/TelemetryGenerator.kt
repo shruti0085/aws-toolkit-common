@@ -1,7 +1,7 @@
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
@@ -16,7 +16,7 @@ fun String.snakeCaseToCamelCase() =
     }.joinToString("")
 
 fun addImports(output: FileSpec.Builder) {
-    // output.addImport("software.aws.toolkits.jetbrains.services", "telemetry")
+    output.addImport("software.aws.toolkits.jetbrains.services", "telemetry")
 }
 
 fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMetricType>) {
@@ -37,19 +37,20 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
                     .build()
             )
         }
+        enum.addFunction(FunSpec.builder("toString").addModifiers(KModifier.OVERRIDE).returns(String::class).addStatement("return name").build())
         output.addType(enum.build())
     }
 }
 
 fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition) {
-    items.metrics.forEach {
-        val functionBuilder = FunSpec.builder("record${it.name.snakeCaseToCamelCase()}")
+    items.metrics.forEach { metric ->
+        val functionBuilder = FunSpec.builder("record${metric.name.snakeCaseToCamelCase()}")
         // generate parameters
         val projectParameter = ClassName("com.intellij.openapi.project", "Project").copy(nullable = true)
-        val valueParameter = com.squareup.kotlinpoet.DOUBLE.copy(nullable = true)
-        val additionalParameters = it.metadata?.map { metadata ->
+        val valueParameter = com.squareup.kotlinpoet.DOUBLE
+        val additionalParameters = metric.metadata?.map { metadata ->
             val telemetryMetricType =
-                items.types.find { it.name == metadata.type } ?: throw IllegalStateException("Type ${metadata.type} on ${it.name} not found in types!")
+                items.types.find { it.name == metadata.type } ?: throw IllegalStateException("Type ${metadata.type} on ${metric.name} not found in types!")
             val typeName = if (telemetryMetricType.allowedValues != null) {
                 ClassName(PACKAGE_NAME, telemetryMetricType.name.filterInvalidCharacters())
             } else {
@@ -63,13 +64,15 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
             .addParameters(additionalParameters)
         // generate body
         val unit = MemberName("software.amazon.awssdk.services.toolkittelemetry.model", "Unit")
-        val bodyCodeBlock = CodeBlock.builder()
-            .add("unit(%M.${(it.unit ?: MetricUnit.NONE).name})\n", unit)
-            .add("value(value)\n")
-        it.metadata?.forEach {
-            bodyCodeBlock.add("metadata(%S, %L.toString())\n", it.type, it.type)
+        functionBuilder
+            .addStatement("TelemetryService.getInstance().record(project) { ")
+            .addStatement("datum(%S) {", metric.name)
+            .addStatement("unit(%M.${(metric.unit ?: MetricUnit.NONE).name})", unit)
+            .addStatement("value(value)")
+        metric.metadata?.forEach {
+            functionBuilder.addStatement("metadata(%S, %L.toString())", it.type, it.type)
         }
-        functionBuilder.addStatement("TelemetryService.getInstance().record(project) { datum(%S) { %L } }", it.name, bodyCodeBlock.build())
+        functionBuilder.addStatement("}}")
 
         output.addFunction(functionBuilder.build())
     }
