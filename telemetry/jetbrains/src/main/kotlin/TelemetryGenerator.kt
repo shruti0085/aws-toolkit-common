@@ -18,7 +18,7 @@ fun String.snakeCaseToCamelCase() =
     }.joinToString("")
 
 fun addImports(output: FileSpec.Builder) {
-    output.addImport("software.aws.toolkits.jetbrains.services", "telemetry")
+    output.addImport("software.aws.toolkits.jetbrains.services.telemetry", "TelemetryService")
 }
 
 fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMetricType>) {
