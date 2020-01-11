@@ -11,11 +11,8 @@ import com.squareup.kotlinpoet.TypeSpec
 val PACKAGE_NAME = "software.amazon.toolkits.telemetry"
 
 fun String.filterInvalidCharacters() = this.replace(".", "")
-
-fun String.snakeCaseToCamelCase() =
-    this.split('_').map {
-        it.toLowerCase().capitalize()
-    }.joinToString("")
+fun String.toTypeFormat() = this.filterInvalidCharacters().capitalize()
+fun String.toArgumentFormat() = this.filterInvalidCharacters().toLowerCase()
 
 fun addImports(output: FileSpec.Builder) {
     output.addImport("software.aws.toolkits.jetbrains.services.telemetry", "TelemetryService")
@@ -26,7 +23,7 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
         if (it.allowedValues == null) {
             return@forEach
         }
-        val enum = TypeSpec.enumBuilder(it.name.capitalize())
+        val enum = TypeSpec.enumBuilder(it.name.toTypeFormat())
             .primaryConstructor(
                 FunSpec.constructorBuilder()
                     .addParameter("name", String::class)
@@ -40,11 +37,15 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
             )
         }
         enum.addFunction(FunSpec.builder("toString").addModifiers(KModifier.OVERRIDE).returns(String::class).addStatement("return name").build())
+        enum.addFunction(
+            FunSpec.builder("from").returns(ClassName("", it.name.toTypeFormat())).addParameter(
+                "type",
+                Any::class
+            ).addStatement("return values().filter { it.name == type.toString() }.first()").build()
+        )
         output.addType(enum.build())
     }
 }
-
-//fun generateNamespaces(metrics: List<Metric>): List<TypeSpec.Builder> = metrics.map { it.name.split("_").first().toLowerCase().capitalize() }.map {  }
 
 fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition) {
     items
@@ -52,9 +53,9 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
         .sortedBy { it.name }
         .groupBy { it.name.split("_").first().toLowerCase() }
         .forEach { metrics: Map.Entry<String, List<Metric>> ->
-            val namespace = TypeSpec.objectBuilder("${metrics.key.capitalize()}Telemetry")
+            val namespace = TypeSpec.objectBuilder("${metrics.key.toTypeFormat()}Telemetry")
             metrics.value.forEach { metric ->
-                val functionBuilder = FunSpec.builder("record${metric.name.split("_")[1].capitalize()}")
+                val functionBuilder = FunSpec.builder("record${metric.name.split("_")[1].toTypeFormat()}")
                 // generate parameters
                 val projectParameter = ClassName("com.intellij.openapi.project", "Project").copy(nullable = true)
                 val valueParameter = com.squareup.kotlinpoet.DOUBLE
@@ -63,11 +64,11 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                         items.types.find { it.name == metadata.type }
                             ?: throw IllegalStateException("Type ${metadata.type} on ${metric.name} not found in types!")
                     val typeName = if (telemetryMetricType.allowedValues != null) {
-                        ClassName(PACKAGE_NAME, telemetryMetricType.name.filterInvalidCharacters().capitalize())
+                        ClassName(PACKAGE_NAME, telemetryMetricType.name.toTypeFormat())
                     } else {
                         telemetryMetricType.type?.getTypeFromType() ?: com.squareup.kotlinpoet.STRING
                     }.copy(nullable = metadata.required ?: false)
-                    ParameterSpec(telemetryMetricType.name.filterInvalidCharacters().toLowerCase(), typeName)
+                    ParameterSpec(telemetryMetricType.name.toArgumentFormat(), typeName)
                 } ?: listOf()
                 functionBuilder
                     .addParameter("project", projectParameter)
@@ -81,7 +82,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                     .addStatement("unit(%M.${(metric.unit ?: MetricUnit.NONE).name})", unit)
                     .addStatement("value(value)")
                 metric.metadata?.forEach {
-                    functionBuilder.addStatement("metadata(%S, %L.toString())", it.type.toLowerCase(), it.type)
+                    functionBuilder.addStatement("metadata(%S, %L.toString())", it.type.toArgumentFormat(), it.type.toArgumentFormat())
                 }
                 functionBuilder.addStatement("}}")
                 namespace.addFunction(functionBuilder.build())
