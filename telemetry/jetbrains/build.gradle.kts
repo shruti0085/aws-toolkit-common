@@ -43,6 +43,9 @@ tasks.withType(Jar::class) {
 }
 
 task(name = "copyTelemetryResources", type = Copy::class) {
+    doFirst {
+        mkdir("src/main/resources")
+    }
     from("..") {
         include("*.json")
     }
