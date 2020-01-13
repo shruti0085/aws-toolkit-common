@@ -5,9 +5,9 @@ package software.amazon.toolkits.telemetry
 
 import org.junit.Test
 
-class TestParser() {
+class TestGenerator() {
     @Test
-    fun failParse() {
+    fun gen() {
 
     }
 }

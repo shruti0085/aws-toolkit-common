@@ -1,3 +1,6 @@
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 package software.amazon.toolkits.telemetry
 
 import com.fasterxml.jackson.annotation.JsonValue
@@ -58,13 +61,23 @@ data class TelemetryDefinition(
     val metrics: List<Metric>
 )
 
-fun parse(): TelemetryDefinition {
-    // TODO validate schema using json schema
-    try {
-        val mapper = jacksonObjectMapper()
-        return mapper.readValue(File("/Users/werlla/aws-toolkit-common/telemetry/telemetryDefinitions.json"))
-    } catch (e: Exception) {
-        System.err.println("Error while parsing: $e")
-        exitProcess(-1)
+fun parseFiles(paths: List<String>): TelemetryDefinition {
+    val files = paths.map {
+        File(it).readText()
+    }
+    return parse(files).fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
+        TelemetryDefinition(it.types.plus(it2.types), it.metrics.plus(it2.metrics))
     }
 }
+
+fun parse(input: List<String>): List<TelemetryDefinition> =
+    // TODO validate schema using json schema
+    input.map {
+        try {
+            val mapper = jacksonObjectMapper()
+            return@map mapper.readValue<TelemetryDefinition>(it)
+        } catch (e: Exception) {
+            System.err.println("Error while parsing: $e")
+            exitProcess(-1)
+        }
+    }

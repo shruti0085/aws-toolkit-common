@@ -1,3 +1,6 @@
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 package software.amazon.toolkits.telemetry
 
 import com.squareup.kotlinpoet.ClassName
@@ -13,10 +16,6 @@ val PACKAGE_NAME = "software.amazon.toolkits.telemetry"
 fun String.filterInvalidCharacters() = this.replace(".", "")
 fun String.toTypeFormat() = this.filterInvalidCharacters().capitalize()
 fun String.toArgumentFormat() = this.filterInvalidCharacters().toLowerCase()
-
-fun addImports(output: FileSpec.Builder) {
-    output.addImport("software.aws.toolkits.jetbrains.services.telemetry", "TelemetryService")
-}
 
 fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMetricType>) {
     items.forEach {
@@ -48,6 +47,7 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
 }
 
 fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition) {
+    val telemetryClient = MemberName("software.aws.toolkits.jetbrains.services.telemetry", "TelemetryService")
     items
         .metrics
         .sortedBy { it.name }
@@ -77,7 +77,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                 // generate body
                 val unit = MemberName("software.amazon.awssdk.services.toolkittelemetry.model", "Unit")
                 functionBuilder
-                    .addStatement("TelemetryService.getInstance().record(project) { ")
+                    .addStatement("%M.getInstance().record(project) { ", telemetryClient)
                     .addStatement("datum(%S) {", metric.name)
                     .addStatement("unit(%M.${(metric.unit ?: MetricUnit.NONE).name})", unit)
                     .addStatement("value(value)")
@@ -94,8 +94,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
 fun main(vararg args: String) {
     val telemetry = parse()
     val output = FileSpec.builder(PACKAGE_NAME, "HelloWorld")
-    //val namespaces = generateNamespaces(telemetry.metrics)
-    addImports(output)
+    output.addComment("THIS FILE IS GENERATED! DO NOT EDIT BY HAND!")
     generateTelemetryEnumTypes(output, telemetry.types)
     generateRecordFunctions(output, telemetry)
     output.build().writeTo(System.out)
