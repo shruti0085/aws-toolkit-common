@@ -15,7 +15,7 @@ import java.io.File
 import kotlin.system.exitProcess
 
 
-enum class TypeTypes(@get:JsonValue val type: String) {
+enum class MetricMetadataTypes(@get:JsonValue val type: String) {
     STRING("string") {
         override fun getTypeFromType(): TypeName = com.squareup.kotlinpoet.STRING
     },
@@ -35,7 +35,7 @@ enum class TypeTypes(@get:JsonValue val type: String) {
 data class TelemetryMetricType(
     val name: String,
     val description: String,
-    val type: TypeTypes?,
+    val type: MetricMetadataTypes?,
     val allowedValues: List<Any>?
 )
 

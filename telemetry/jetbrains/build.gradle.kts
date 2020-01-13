@@ -45,36 +45,33 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
-}
-
-tasks.register("validatePackagedSchema") {
-    group = "build"
-    description = "Validates that the packaged definition is compatable with the packaged schema"
-    doFirst {
-        try {
-            val rawSchema = JSONObject(org.json.JSONTokener(File("src/main/resources/telemetrySchema.json").readText()))
-            val schema: Schema = SchemaLoader.load(rawSchema)
-            schema.validate(JSONObject(File("src/main/resources/telemetryDefinitions.json").readText()))
-        } catch (e: Exception) {
-            println("Exception while validating packaged schema, ${e.printStackTrace()}")
+    withType<Jar> {
+        manifest {
+            attributes["Main-Class"] = "software.amazon.toolkits.telemetry.TelemetryGeneratorMain"
+        }
+        // Package in runtime dependencies
+        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    }
+    register("validatePackagedSchema") {
+        group = "build"
+        description = "Validates that the packaged definition is compatable with the packaged schema"
+        doFirst {
+            try {
+                val rawSchema = JSONObject(org.json.JSONTokener(File("src/main/resources/telemetrySchema.json").readText()))
+                val schema: Schema = SchemaLoader.load(rawSchema)
+                schema.validate(JSONObject(File("src/main/resources/telemetryDefinitions.json").readText()))
+            } catch (e: Exception) {
+                println("Exception while validating packaged schema, ${e.printStackTrace()}")
+            }
         }
     }
-}
-
-tasks.withType(Jar::class) {
-    manifest {
-        attributes["Main-Class"] = "software.amazon.toolkits.telemetry.TelemetryGeneratorMain"
+    task(name = "copyTelemetryResources", type = Copy::class) {
+        doFirst {
+            mkdir("src/main/resources")
+        }
+        from("..") {
+            include("*.json")
+        }
+        into("src/main/resources")
     }
-    // Package in runtime dependencies
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-}
-
-task(name = "copyTelemetryResources", type = Copy::class) {
-    doFirst {
-        mkdir("src/main/resources")
-    }
-    from("..") {
-        include("*.json")
-    }
-    into("src/main/resources")
 }
