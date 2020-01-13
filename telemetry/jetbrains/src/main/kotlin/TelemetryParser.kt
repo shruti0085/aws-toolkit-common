@@ -7,8 +7,13 @@ import com.fasterxml.jackson.annotation.JsonValue
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.squareup.kotlinpoet.TypeName
+import org.everit.json.schema.Schema
+import org.everit.json.schema.loader.SchemaLoader
+import org.json.JSONObject
+import org.json.JSONTokener
 import java.io.File
 import kotlin.system.exitProcess
+
 
 enum class TypeTypes(@get:JsonValue val type: String) {
     STRING("string") {
@@ -61,23 +66,39 @@ data class TelemetryDefinition(
     val metrics: List<Metric>
 )
 
-fun parseFiles(paths: List<String>): TelemetryDefinition {
-    val files = paths.map {
-        File(it).readText()
+object TelemetryParser {
+    fun parseFiles(paths: List<String> = listOf()): TelemetryDefinition {
+        val files = paths.map {
+            File(it).readText()
+        }.plus(FileLoader.DEFINITONS_FILE)
+        val rawSchema = JSONObject(JSONTokener(FileLoader.SCHEMA_FILE))
+        val schema: Schema = SchemaLoader.load(rawSchema)
+        paths.forEach {
+            validate(it, schema)
+        }
+        return parse(files)
     }
-    return parse(files)
-}
 
-fun parse(input: List<String>): TelemetryDefinition =
-    // TODO validate schema using json schema
-    input.map {
+    private fun validate(fileContents: String, schema: Schema) {
         try {
-            val mapper = jacksonObjectMapper()
-            return@map mapper.readValue<TelemetryDefinition>(it)
+            schema.validate(JSONObject(File(fileContents).readText()))
         } catch (e: Exception) {
-            System.err.println("Error while parsing: $e")
+            System.err.println("Schema validation failed due to thrown exception $e")
             exitProcess(-1)
         }
-    }.fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
-        TelemetryDefinition(it.types.plus(it2.types), it.metrics.plus(it2.metrics))
     }
+
+    fun parse(input: List<String>): TelemetryDefinition =
+        // TODO validate schema using json schema
+        input.map {
+            try {
+                val mapper = jacksonObjectMapper()
+                return@map mapper.readValue<TelemetryDefinition>(it)
+            } catch (e: Exception) {
+                System.err.println("Error while parsing: $e")
+                exitProcess(-1)
+            }
+        }.fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
+            TelemetryDefinition(it.types.plus(it2.types), it.metrics.plus(it2.metrics))
+        }
+}

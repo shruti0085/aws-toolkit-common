@@ -10,6 +10,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.MemberName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
+import java.io.File
 
 val PACKAGE_NAME = "software.amazon.toolkits.telemetry"
 
@@ -49,6 +50,7 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
 
 fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition) {
     val telemetryClient = MemberName("software.aws.toolkits.jetbrains.services.telemetry", "TelemetryService")
+    val metricUnit = MemberName("software.amazon.awssdk.services.toolkittelemetry.model", "Unit")
     items
         .metrics
         .sortedBy { it.name }
@@ -76,11 +78,10 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                     .addParameter(ParameterSpec.builder("value", valueParameter).defaultValue("1.0").build())
                     .addParameters(additionalParameters)
                 // generate body
-                val unit = MemberName("software.amazon.awssdk.services.toolkittelemetry.model", "Unit")
                 functionBuilder
                     .addStatement("%M.getInstance().record(project) { ", telemetryClient)
                     .addStatement("datum(%S) {", metric.name)
-                    .addStatement("unit(%M.${(metric.unit ?: MetricUnit.NONE).name})", unit)
+                    .addStatement("unit(%M.${(metric.unit ?: MetricUnit.NONE).name})", metricUnit)
                     .addStatement("value(value)")
                 metric.metadata?.forEach {
                     functionBuilder.addStatement("metadata(%S, %L.toString())", it.type.toArgumentFormat(), it.type.toArgumentFormat())
@@ -93,11 +94,12 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
         }
 }
 
-fun main(vararg args: String) {
-    val telemetry = parseFiles(listOf("/Users/werlla/aws-toolkit-common/telemetry/telemetryDefinitions.json"))
+fun generateTelemetryFromFiles(inputFiles: List<String>, outputFolder: String) {
+    val telemetry = TelemetryParser.parseFiles(inputFiles)
     val output = FileSpec.builder(PACKAGE_NAME, "HelloWorld")
     output.addComment("THIS FILE IS GENERATED! DO NOT EDIT BY HAND!")
     generateTelemetryEnumTypes(output, telemetry.types)
     generateRecordFunctions(output, telemetry)
-    output.build().writeTo(System.out)
+    output.build().writeTo(File(outputFolder))
 }
+
