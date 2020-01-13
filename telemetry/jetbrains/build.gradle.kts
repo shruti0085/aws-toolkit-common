@@ -11,6 +11,7 @@ plugins {
     java
     `kotlin-dsl` version "1.1.3"
     kotlin("jvm") version "1.3.61"
+    `maven-publish`
 }
 
 buildscript {
@@ -78,5 +79,23 @@ tasks {
             include("*.json")
         }
         into("src/main/resources")
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "software.amazon"
+            artifactId = "toolkits.telemetry"
+            version = "1.0"
+            pom {
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+            }
+        }
     }
 }
