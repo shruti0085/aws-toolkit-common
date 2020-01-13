@@ -94,12 +94,11 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
         }
 }
 
-fun generateTelemetryFromFiles(inputFiles: List<String>, outputFolder: String) {
+fun generateTelemetryFromFiles(inputFiles: List<File>, outputFolder: File) {
     val telemetry = TelemetryParser.parseFiles(inputFiles)
     val output = FileSpec.builder(PACKAGE_NAME, "TelemetryDefinitions")
     output.addComment("THIS FILE IS GENERATED! DO NOT EDIT BY HAND!")
     generateTelemetryEnumTypes(output, telemetry.types)
     generateRecordFunctions(output, telemetry)
-    output.build().writeTo(File(outputFolder))
+    output.build().writeTo(outputFolder)
 }
-

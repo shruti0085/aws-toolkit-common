@@ -5,8 +5,11 @@ import org.json.JSONObject
 
 val jacksonVersion = "2.10.0"
 val junitVersion = "4.13"
+val kotlinVersion = "1.3.61"
 
 plugins {
+    java
+    `kotlin-dsl` version "1.1.3"
     kotlin("jvm") version "1.3.61"
 }
 
@@ -14,9 +17,11 @@ buildscript {
     repositories {
         mavenCentral()
         maven { setUrl("https://jitpack.io") }
+        maven { setUrl("https://plugins.gradle.org/m2/") }
     }
     dependencies {
         "classpath"(group = "com.github.everit-org.json-schema", name = "org.everit.json.schema", version = "1.12.1")
+        classpath(kotlin("gradle-plugin", version = "1.3.61"))
     }
 }
 

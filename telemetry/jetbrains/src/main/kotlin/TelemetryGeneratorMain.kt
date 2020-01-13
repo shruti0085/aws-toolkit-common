@@ -3,10 +3,12 @@
 
 package software.amazon.toolkits.telemetry
 
+import java.io.File
+
 // This main is used for testing
 object TelemetryGeneratorMain {
     @JvmStatic
     fun main(vararg args: String) {
-        generateTelemetryFromFiles(listOf(), "out")
+        generateTelemetryFromFiles(listOf(), File("out"))
     }
 }

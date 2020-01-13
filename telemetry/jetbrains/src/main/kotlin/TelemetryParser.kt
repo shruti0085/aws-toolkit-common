@@ -67,21 +67,17 @@ data class TelemetryDefinition(
 )
 
 object TelemetryParser {
-    fun parseFiles(paths: List<String> = listOf()): TelemetryDefinition {
-        val files = paths.map {
-            File(it).readText()
-        }.plus(FileLoader.DEFINITONS_FILE)
+    fun parseFiles(paths: List<File> = listOf()): TelemetryDefinition {
+        val files = paths.map { it.readText() }.plus(FileLoader.DEFINITONS_FILE)
         val rawSchema = JSONObject(JSONTokener(FileLoader.SCHEMA_FILE))
         val schema: Schema = SchemaLoader.load(rawSchema)
-        paths.forEach {
-            validate(it, schema)
-        }
+        files.forEach { validate(it, schema) }
         return parse(files)
     }
 
     private fun validate(fileContents: String, schema: Schema) {
         try {
-            schema.validate(JSONObject(File(fileContents).readText()))
+            schema.validate(JSONObject(fileContents))
         } catch (e: Exception) {
             System.err.println("Schema validation failed due to thrown exception $e")
             exitProcess(-1)
