@@ -42,6 +42,7 @@ fun generateTelemetryEnumTypes(output: FileSpec.Builder, items: List<TelemetryMe
                 Any::class
             ).addStatement("return values().filter { it.name == type.toString() }.first()").build()
         )
+        enum.addKdoc(it.description)
         output.addType(enum.build())
     }
 }
@@ -85,6 +86,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                     functionBuilder.addStatement("metadata(%S, %L.toString())", it.type.toArgumentFormat(), it.type.toArgumentFormat())
                 }
                 functionBuilder.addStatement("}}")
+                functionBuilder.addKdoc(metric.description)
                 namespace.addFunction(functionBuilder.build())
             }
             output.addType(namespace.build())
@@ -92,7 +94,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
 }
 
 fun main(vararg args: String) {
-    val telemetry = parse()
+    val telemetry = parseFiles(listOf("/Users/werlla/aws-toolkit-common/telemetry/telemetryDefinitions.json"))
     val output = FileSpec.builder(PACKAGE_NAME, "HelloWorld")
     output.addComment("THIS FILE IS GENERATED! DO NOT EDIT BY HAND!")
     generateTelemetryEnumTypes(output, telemetry.types)

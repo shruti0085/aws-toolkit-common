@@ -65,12 +65,10 @@ fun parseFiles(paths: List<String>): TelemetryDefinition {
     val files = paths.map {
         File(it).readText()
     }
-    return parse(files).fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
-        TelemetryDefinition(it.types.plus(it2.types), it.metrics.plus(it2.metrics))
-    }
+    return parse(files)
 }
 
-fun parse(input: List<String>): List<TelemetryDefinition> =
+fun parse(input: List<String>): TelemetryDefinition =
     // TODO validate schema using json schema
     input.map {
         try {
@@ -80,4 +78,6 @@ fun parse(input: List<String>): List<TelemetryDefinition> =
             System.err.println("Error while parsing: $e")
             exitProcess(-1)
         }
+    }.fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
+        TelemetryDefinition(it.types.plus(it2.types), it.metrics.plus(it2.metrics))
     }
