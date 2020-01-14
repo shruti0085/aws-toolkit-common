@@ -65,9 +65,13 @@ data class TelemetryDefinition(
 )
 
 object TelemetryParser {
-    fun parseFiles(paths: List<File> = listOf()): TelemetryDefinition {
-        val files = paths.map { it.readText() }.plus(ResourceLoader.DEFINITONS_FILE)
-        val rawSchema = JSONObject(JSONTokener(ResourceLoader.SCHEMA_FILE))
+    fun parseFiles(
+        paths: List<File> = listOf(),
+        schemaFile: String = ResourceLoader.SCHEMA_FILE,
+        defaultResourcesFile: String = ResourceLoader.DEFINITONS_FILE
+    ): TelemetryDefinition {
+        val files = paths.map { it.readText() }.plus(defaultResourcesFile)
+        val rawSchema = JSONObject(JSONTokener(schemaFile))
         val schema: Schema = SchemaLoader.load(rawSchema)
         files.forEach { validate(it, schema) }
         return parse(files)
@@ -82,7 +86,7 @@ object TelemetryParser {
         }
     }
 
-    fun parse(input: List<String>): TelemetryDefinition =
+    private fun parse(input: List<String>): TelemetryDefinition =
         // TODO validate schema using json schema
         input.map {
             try {

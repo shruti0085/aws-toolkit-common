@@ -1,13 +1,13 @@
 // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package software.amazon.toolkits.telemetry
+package software.amazon.toolkits.telemetry.software.amazon.toolkits.telemetry
 
 import org.junit.Test
 
-class TestParser() {
+class TestGenerator() {
     @Test
-    fun failParse() {
+    fun gen() {
 
     }
 }
