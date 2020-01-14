@@ -64,7 +64,7 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
                 val valueParameter = com.squareup.kotlinpoet.DOUBLE
                 val additionalParameters = metric.metadata?.map { metadata ->
                     val telemetryMetricType =
-                        items.types.find { it.name == metadata.type }
+                        items.types?.find { it.name == metadata.type }
                             ?: throw IllegalStateException("Type ${metadata.type} on ${metric.name} not found in types!")
                     val typeName = if (telemetryMetricType.allowedValues != null) {
                         ClassName(PACKAGE_NAME, telemetryMetricType.name.toTypeFormat())
@@ -94,11 +94,11 @@ fun generateRecordFunctions(output: FileSpec.Builder, items: TelemetryDefinition
         }
 }
 
-fun generateTelemetryFromFiles(inputFiles: List<File>, outputFolder: File) {
-    val telemetry = TelemetryParser.parseFiles(inputFiles)
+fun generateTelemetryFromFiles(inputFiles: List<File>, outputFolder: File, defaultDefinitions: String = ResourceLoader.DEFINITONS_FILE) {
+    val telemetry = TelemetryParser.parseFiles(inputFiles, defaultDefinitions)
     val output = FileSpec.builder(PACKAGE_NAME, "TelemetryDefinitions")
     output.addComment("THIS FILE IS GENERATED! DO NOT EDIT BY HAND!")
-    generateTelemetryEnumTypes(output, telemetry.types)
+    telemetry.types?.let { generateTelemetryEnumTypes(output, it) }
     generateRecordFunctions(output, telemetry)
     output.build().writeTo(outputFolder)
 }

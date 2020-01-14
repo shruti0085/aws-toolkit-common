@@ -60,18 +60,17 @@ data class Metric(
 )
 
 data class TelemetryDefinition(
-    val types: List<TelemetryMetricType>,
+    val types: List<TelemetryMetricType>?,
     val metrics: List<Metric>
 )
 
 object TelemetryParser {
     fun parseFiles(
         paths: List<File> = listOf(),
-        schemaFile: String = ResourceLoader.SCHEMA_FILE,
-        defaultResourcesFile: String = ResourceLoader.DEFINITONS_FILE
+        defaultResourcesFile: String
     ): TelemetryDefinition {
         val files = paths.map { it.readText() }.plus(defaultResourcesFile)
-        val rawSchema = JSONObject(JSONTokener(schemaFile))
+        val rawSchema = JSONObject(JSONTokener(ResourceLoader.SCHEMA_FILE))
         val schema: Schema = SchemaLoader.load(rawSchema)
         files.forEach { validate(it, schema) }
         return parse(files)
@@ -98,7 +97,7 @@ object TelemetryParser {
             }
         }.fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
             TelemetryDefinition(
-                it.types.plus(it2.types),
+                it.types!!.plus(it2.types ?: listOf()),
                 it.metrics.plus(it2.metrics)
             )
         }
