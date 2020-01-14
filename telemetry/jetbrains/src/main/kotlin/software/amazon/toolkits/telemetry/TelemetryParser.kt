@@ -12,8 +12,6 @@ import org.everit.json.schema.loader.SchemaLoader
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
-import kotlin.system.exitProcess
-
 
 enum class MetricMetadataTypes(@get:JsonValue val type: String) {
     STRING("string") {
@@ -68,8 +66,8 @@ data class TelemetryDefinition(
 
 object TelemetryParser {
     fun parseFiles(paths: List<File> = listOf()): TelemetryDefinition {
-        val files = paths.map { it.readText() }.plus(FileLoader.DEFINITONS_FILE)
-        val rawSchema = JSONObject(JSONTokener(FileLoader.SCHEMA_FILE))
+        val files = paths.map { it.readText() }.plus(ResourceLoader.DEFINITONS_FILE)
+        val rawSchema = JSONObject(JSONTokener(ResourceLoader.SCHEMA_FILE))
         val schema: Schema = SchemaLoader.load(rawSchema)
         files.forEach { validate(it, schema) }
         return parse(files)
@@ -80,7 +78,7 @@ object TelemetryParser {
             schema.validate(JSONObject(fileContents))
         } catch (e: Exception) {
             System.err.println("Schema validation failed due to thrown exception $e")
-            exitProcess(-1)
+            throw e
         }
     }
 
@@ -92,9 +90,12 @@ object TelemetryParser {
                 return@map mapper.readValue<TelemetryDefinition>(it)
             } catch (e: Exception) {
                 System.err.println("Error while parsing: $e")
-                exitProcess(-1)
+                throw e
             }
         }.fold(TelemetryDefinition(listOf(), listOf())) { it, it2 ->
-            TelemetryDefinition(it.types.plus(it2.types), it.metrics.plus(it2.metrics))
+            TelemetryDefinition(
+                it.types.plus(it2.types),
+                it.metrics.plus(it2.metrics)
+            )
         }
 }

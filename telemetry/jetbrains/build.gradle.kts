@@ -5,12 +5,12 @@ import org.json.JSONObject
 
 val jacksonVersion = "2.10.0"
 val junitVersion = "4.13"
-val kotlinVersion = "1.3.61"
+val kotlinVersion = "1.3.20"
 
 plugins {
     java
     `kotlin-dsl` version "1.1.3"
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.3.20"
     `maven-publish`
 }
 
@@ -22,7 +22,7 @@ buildscript {
     }
     dependencies {
         "classpath"(group = "com.github.everit-org.json-schema", name = "org.everit.json.schema", version = "1.12.1")
-        classpath(kotlin("gradle-plugin", version = "1.3.61"))
+        classpath(kotlin("gradle-plugin", version = "1.3.20"))
     }
 }
 
@@ -52,9 +52,6 @@ tasks {
         kotlinOptions.jvmTarget = "1.8"
     }
     withType<Jar> {
-        manifest {
-            attributes["Main-Class"] = "software.amazon.toolkits.telemetry.TelemetryGeneratorMain"
-        }
         // Package in runtime dependencies
         from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     }
@@ -85,6 +82,7 @@ tasks {
 publishing {
     publications {
         create<MavenPublication>("maven") {
+            from(components["java"])
             groupId = "software.amazon"
             artifactId = "toolkits.telemetry"
             version = "1.0"

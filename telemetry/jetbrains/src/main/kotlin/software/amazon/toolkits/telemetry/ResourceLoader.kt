@@ -3,7 +3,7 @@
 
 package software.amazon.toolkits.telemetry
 
-object FileLoader {
+object ResourceLoader {
     private val schemaPath = "/telemetrySchema.json"
     private val definitionsPath = "/telemetryDefinitions.json"
 
