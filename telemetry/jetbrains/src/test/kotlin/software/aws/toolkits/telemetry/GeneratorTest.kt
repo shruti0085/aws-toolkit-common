@@ -1,7 +1,7 @@
 // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package software.amazon.toolkits.telemetry
+package software.aws.toolkits.telemetry
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -83,7 +83,7 @@ class GeneratorTest() {
                 """.trimIndent()
         )
 
-        val outputFile = Paths.get(folder.root.absolutePath, "software", "amazon", "toolkits", "telemetry", "TelemetryDefinitions.kt")
+        val outputFile = Paths.get(folder.root.absolutePath, "software", "aws", "toolkits", "telemetry", "TelemetryDefinitions.kt")
         assertThat(Files.exists(outputFile)).isTrue
 
         assertThat(outputFile.toFile().readText()).isEqualToIgnoringWhitespace(

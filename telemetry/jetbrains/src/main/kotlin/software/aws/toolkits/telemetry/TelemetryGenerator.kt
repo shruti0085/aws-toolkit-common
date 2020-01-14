@@ -1,7 +1,7 @@
 // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-package software.amazon.toolkits.telemetry
+package software.aws.toolkits.telemetry
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -12,7 +12,7 @@ import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
 import java.io.File
 
-val PACKAGE_NAME = "software.amazon.toolkits.telemetry"
+val PACKAGE_NAME = "software.aws.toolkits.telemetry"
 
 fun String.filterInvalidCharacters() = this.replace(".", "")
 fun String.toTypeFormat() = this.filterInvalidCharacters().capitalize()

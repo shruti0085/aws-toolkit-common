@@ -84,7 +84,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            groupId = "software.amazon"
+            groupId = "com.amazonaws"
             artifactId = "toolkits.telemetry"
             version = "1.0"
             pom {
