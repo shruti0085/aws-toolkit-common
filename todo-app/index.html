@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="app" role="main">
+        <header class="app-header">
+            <h1>Todos</h1>
+        </header>
+
+        <section class="todo-input-section" aria-label="Add a new todo">
+            <input
+                type="text"
+                id="todo-input"
+                class="todo-input"
+                placeholder="What needs to be done?"
+                aria-label="New todo text"
+                autocomplete="off"
+            >
+            <button id="add-btn" class="add-btn" aria-label="Add todo">Add</button>
+        </section>
+
+        <nav class="filter-bar" aria-label="Filter todos">
+            <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+            <button class="filter-btn" data-filter="active" aria-pressed="false">Active</button>
+            <button class="filter-btn" data-filter="completed" aria-pressed="false">Completed</button>
+        </nav>
+
+        <section class="todo-list-section" aria-label="Todo list">
+            <ul id="todo-list" class="todo-list" role="list" aria-live="polite">
+            </ul>
+        </section>
+
+        <footer class="app-footer" aria-label="Todo summary">
+            <span id="item-count" class="item-count">0 items left</span>
+            <button id="clear-completed-btn" class="clear-completed-btn" aria-label="Clear completed todos">
+                Clear Completed
+            </button>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
