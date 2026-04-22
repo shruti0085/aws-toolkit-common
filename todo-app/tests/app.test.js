@@ -82,6 +82,12 @@ describe('TodoApp', function () {
             assert.notStrictEqual(todo1.id, todo2.id)
         })
 
+        it('should use crypto.randomUUID when available', function () {
+            var todo = app.addTodo('UUID test')
+            var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+            assert.ok(uuidPattern.test(todo.id), 'Expected UUID format, got: ' + todo.id)
+        })
+
         it('should persist to storage after adding', function () {
             app.addTodo('Persisted todo')
             var stored = JSON.parse(storage.getItem('todo-app-todos'))
@@ -313,6 +319,78 @@ describe('TodoApp', function () {
             var reloadedApp = new TodoApp(storage)
             assert.strictEqual(reloadedApp.todos.length, 3)
             assert.strictEqual(reloadedApp.todos[2].completed, true)
+        })
+
+        it('should filter out entries with missing id', function () {
+            var data = [
+                { text: 'No id', completed: false, createdAt: '2024-01-01T00:00:00.000Z' },
+                { id: 'valid', text: 'Has id', completed: false, createdAt: '2024-01-01T00:00:00.000Z' }
+            ]
+            storage.setItem('todo-app-todos', JSON.stringify(data))
+            var newApp = new TodoApp(storage)
+            assert.strictEqual(newApp.todos.length, 1)
+            assert.strictEqual(newApp.todos[0].id, 'valid')
+        })
+
+        it('should filter out entries with non-string id', function () {
+            var data = [
+                { id: 123, text: 'Numeric id', completed: false, createdAt: '2024-01-01T00:00:00.000Z' }
+            ]
+            storage.setItem('todo-app-todos', JSON.stringify(data))
+            var newApp = new TodoApp(storage)
+            assert.strictEqual(newApp.todos.length, 0)
+        })
+
+        it('should filter out entries with missing text', function () {
+            var data = [{ id: 'abc', completed: false, createdAt: '2024-01-01T00:00:00.000Z' }]
+            storage.setItem('todo-app-todos', JSON.stringify(data))
+            var newApp = new TodoApp(storage)
+            assert.strictEqual(newApp.todos.length, 0)
+        })
+
+        it('should filter out entries with non-boolean completed', function () {
+            var data = [{ id: 'abc', text: 'Bad completed', completed: 'yes', createdAt: '2024-01-01T00:00:00.000Z' }]
+            storage.setItem('todo-app-todos', JSON.stringify(data))
+            var newApp = new TodoApp(storage)
+            assert.strictEqual(newApp.todos.length, 0)
+        })
+
+        it('should filter out null entries in the array', function () {
+            var data = [null, { id: 'valid', text: 'Good', completed: true, createdAt: '2024-01-01T00:00:00.000Z' }]
+            storage.setItem('todo-app-todos', JSON.stringify(data))
+            var newApp = new TodoApp(storage)
+            assert.strictEqual(newApp.todos.length, 1)
+            assert.strictEqual(newApp.todos[0].id, 'valid')
+        })
+
+        it('should return empty array when storage contains a non-array', function () {
+            storage.setItem('todo-app-todos', JSON.stringify({ not: 'an array' }))
+            var newApp = new TodoApp(storage)
+            assert.strictEqual(newApp.todos.length, 0)
+        })
+
+        it('should return true from _save on success', function () {
+            app.addTodo('Test save')
+            var result = app._save()
+            assert.strictEqual(result, true)
+        })
+
+        it('should return false from _save when storage is null', function () {
+            var noStorageApp = new TodoApp(null)
+            noStorageApp.addTodo('No storage')
+            var result = noStorageApp._save()
+            assert.strictEqual(result, false)
+        })
+
+        it('should return false from _save when storage throws', function () {
+            var failingStorage = createMockStorage()
+            failingStorage.setItem = function () {
+                throw new Error('QuotaExceededError')
+            }
+            var failApp = new TodoApp(failingStorage)
+            failApp.todos = [{ id: 'a', text: 'Test', completed: false, createdAt: '2024-01-01T00:00:00.000Z' }]
+            var result = failApp._save()
+            assert.strictEqual(result, false)
         })
     })
 

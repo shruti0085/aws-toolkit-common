@@ -196,6 +196,10 @@ body {
     opacity: 1;
 }
 
+.todo-item:focus-within .delete-btn {
+    opacity: 1;
+}
+
 .delete-btn:hover {
     background-color: rgba(231, 76, 60, 0.1);
     color: var(--color-danger-hover);
@@ -205,6 +209,12 @@ body {
     opacity: 1;
     outline: 2px solid var(--color-danger);
     outline-offset: 2px;
+}
+
+@media (hover: none) {
+    .delete-btn {
+        opacity: 1;
+    }
 }
 
 .app-footer {

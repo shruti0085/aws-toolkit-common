@@ -6,22 +6,40 @@ class TodoApp {
         this.filter = 'all'
     }
 
+    _generateId() {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return crypto.randomUUID()
+        }
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+    }
+
     _load() {
         if (!this.storage) return []
         try {
             var data = this.storage.getItem(this.storageKey)
-            return data ? JSON.parse(data) : []
+            var parsed = data ? JSON.parse(data) : []
+            if (!Array.isArray(parsed)) return []
+            return parsed.filter(function (t) {
+                return (
+                    t &&
+                    typeof t === 'object' &&
+                    typeof t.id === 'string' &&
+                    typeof t.text === 'string' &&
+                    typeof t.completed === 'boolean'
+                )
+            })
         } catch (e) {
             return []
         }
     }
 
     _save() {
-        if (!this.storage) return
+        if (!this.storage) return false
         try {
             this.storage.setItem(this.storageKey, JSON.stringify(this.todos))
+            return true
         } catch (e) {
-            // storage full or unavailable
+            return false
         }
     }
 
@@ -29,7 +47,7 @@ class TodoApp {
         var trimmed = typeof text === 'string' ? text.trim() : ''
         if (!trimmed) return null
         var todo = {
-            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+            id: this._generateId(),
             text: trimmed,
             completed: false,
             createdAt: new Date().toISOString()
@@ -116,7 +134,7 @@ function initApp() {
 
     function render() {
         var todos = app.getFilteredTodos()
-        todoList.innerHTML = ''
+        todoList.replaceChildren()
 
         todos.forEach(function (todo) {
             var li = document.createElement('li')
@@ -172,6 +190,8 @@ function initApp() {
         editInput.setAttribute('aria-label', 'Edit todo')
 
         function finishEdit() {
+            if (finishEdit.committed) return
+            finishEdit.committed = true
             var newText = editInput.value.trim()
             if (newText) {
                 app.editTodo(todo.id, newText)
