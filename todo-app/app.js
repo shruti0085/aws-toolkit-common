@@ -53,7 +53,10 @@ class TodoApp {
             createdAt: new Date().toISOString()
         }
         this.todos.push(todo)
-        this._save()
+        if (!this._save()) {
+            this.todos.pop()
+            return null
+        }
         return todo
     }
 
@@ -61,23 +64,26 @@ class TodoApp {
         var todo = this.todos.find(function (t) {
             return t.id === id
         })
-        if (todo) {
+        if (!todo) return null
+        todo.completed = !todo.completed
+        if (!this._save()) {
             todo.completed = !todo.completed
-            this._save()
+            return null
         }
-        return todo || null
+        return todo
     }
 
     deleteTodo(id) {
         var index = this.todos.findIndex(function (t) {
             return t.id === id
         })
-        if (index !== -1) {
-            var removed = this.todos.splice(index, 1)[0]
-            this._save()
-            return removed
+        if (index === -1) return null
+        var removed = this.todos.splice(index, 1)[0]
+        if (!this._save()) {
+            this.todos.splice(index, 0, removed)
+            return null
         }
-        return null
+        return removed
     }
 
     editTodo(id, newText) {
@@ -86,18 +92,26 @@ class TodoApp {
         var todo = this.todos.find(function (t) {
             return t.id === id
         })
-        if (todo) {
-            todo.text = trimmed
-            this._save()
+        if (!todo) return null
+        var oldText = todo.text
+        todo.text = trimmed
+        if (!this._save()) {
+            todo.text = oldText
+            return null
         }
-        return todo || null
+        return todo
     }
 
     clearCompleted() {
+        var previous = this.todos
         this.todos = this.todos.filter(function (t) {
             return !t.completed
         })
-        this._save()
+        if (!this._save()) {
+            this.todos = previous
+            return false
+        }
+        return true
     }
 
     getFilteredTodos(filter) {
@@ -200,6 +214,7 @@ function initApp() {
         }
 
         function cancelEdit() {
+            finishEdit.committed = true
             render()
         }
 

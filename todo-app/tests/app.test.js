@@ -307,7 +307,8 @@ describe('TodoApp', function () {
             var noStorageApp = new TodoApp(null)
             assert.strictEqual(noStorageApp.todos.length, 0)
             var todo = noStorageApp.addTodo('No storage')
-            assert.ok(todo)
+            assert.strictEqual(todo, null)
+            assert.strictEqual(noStorageApp.todos.length, 0)
         })
 
         it('should save and reload state correctly', function () {
@@ -391,6 +392,79 @@ describe('TodoApp', function () {
             failApp.todos = [{ id: 'a', text: 'Test', completed: false, createdAt: '2024-01-01T00:00:00.000Z' }]
             var result = failApp._save()
             assert.strictEqual(result, false)
+        })
+
+        it('should rollback addTodo when save fails', function () {
+            var failingStorage = createMockStorage()
+            var failApp = new TodoApp(failingStorage)
+            failingStorage.setItem = function () {
+                throw new Error('QuotaExceededError')
+            }
+            var result = failApp.addTodo('Should not persist')
+            assert.strictEqual(result, null)
+            assert.strictEqual(failApp.todos.length, 0)
+        })
+
+        it('should rollback toggleTodo when save fails', function () {
+            var failingStorage = createMockStorage()
+            var failApp = new TodoApp(failingStorage)
+            failApp.addTodo('Toggle rollback')
+            var id = failApp.todos[0].id
+            failingStorage.setItem = function () {
+                throw new Error('QuotaExceededError')
+            }
+            var result = failApp.toggleTodo(id)
+            assert.strictEqual(result, null)
+            assert.strictEqual(failApp.todos[0].completed, false)
+        })
+
+        it('should rollback deleteTodo when save fails', function () {
+            var failingStorage = createMockStorage()
+            var failApp = new TodoApp(failingStorage)
+            failApp.addTodo('Delete rollback')
+            var id = failApp.todos[0].id
+            failingStorage.setItem = function () {
+                throw new Error('QuotaExceededError')
+            }
+            var result = failApp.deleteTodo(id)
+            assert.strictEqual(result, null)
+            assert.strictEqual(failApp.todos.length, 1)
+            assert.strictEqual(failApp.todos[0].id, id)
+        })
+
+        it('should rollback editTodo when save fails', function () {
+            var failingStorage = createMockStorage()
+            var failApp = new TodoApp(failingStorage)
+            failApp.addTodo('Original text')
+            var id = failApp.todos[0].id
+            failingStorage.setItem = function () {
+                throw new Error('QuotaExceededError')
+            }
+            var result = failApp.editTodo(id, 'New text')
+            assert.strictEqual(result, null)
+            assert.strictEqual(failApp.todos[0].text, 'Original text')
+        })
+
+        it('should rollback clearCompleted when save fails', function () {
+            var failingStorage = createMockStorage()
+            var failApp = new TodoApp(failingStorage)
+            failApp.addTodo('Active')
+            var todo2 = failApp.addTodo('Completed')
+            failApp.toggleTodo(todo2.id)
+            failingStorage.setItem = function () {
+                throw new Error('QuotaExceededError')
+            }
+            var result = failApp.clearCompleted()
+            assert.strictEqual(result, false)
+            assert.strictEqual(failApp.todos.length, 2)
+        })
+
+        it('should return true from clearCompleted on success', function () {
+            var todo = app.addTodo('Done')
+            app.toggleTodo(todo.id)
+            var result = app.clearCompleted()
+            assert.strictEqual(result, true)
+            assert.strictEqual(app.todos.length, 0)
         })
     })
 
