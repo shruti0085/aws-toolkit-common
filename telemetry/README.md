@@ -3,6 +3,44 @@
 `telemetry` contains code generators and definitions files to generate telemetry calls for the various
 AWS Toolkits.
 
+## Package Overview
+
+The telemetry package provides a unified, cross-IDE telemetry generation system for AWS Toolkits. Below is a summary of what the package includes and how it is structured.
+
+### Structure
+
+| Directory | Purpose |
+|-----------|---------|
+| `definitions/` | JSON telemetry definition files (shared across all IDEs) |
+| `vscode/` | VS Code-specific code generator |
+| `jetbrains/` | JetBrains (Kotlin/Gradle) code generator |
+| `csharp/` | C# code generator and event library |
+| `design/` | Design documents and rationale |
+
+### Key Features
+
+- **Declarative definitions** — Telemetry events are defined in JSON, making them easy to review and extend without touching generator code.
+- **Multi-IDE code generation** — A single set of definitions produces type-safe telemetry calls for VS Code (TypeScript), JetBrains (Kotlin), and Visual Studio (C#).
+- **JSON Schema validation** — A schema file (`telemetrySchema.json`) enables in-editor feedback while authoring definitions.
+- **Strongly-typed metadata** — Generated code enforces allowed values and types at compile time, reducing runtime errors.
+- **Extensible format** — New metadata types and metrics can be added by editing JSON; generators handle the rest.
+
+### Supported Platforms
+
+| Platform | Language | Generator |
+|----------|----------|-----------|
+| VS Code | TypeScript | Node.js script |
+| JetBrains IDEs | Kotlin | Gradle plugin |
+| Visual Studio | C# | .NET console app |
+
+### How It Works
+
+1. Authors define telemetry types and metrics in JSON files under `definitions/`.
+2. Platform-specific generators read those definitions and produce source code with type-safe recording functions.
+3. Toolkit codebases consume the generated output and call the recording functions at instrumentation points.
+
+This approach keeps telemetry consistent across all AWS Toolkit variants while allowing each IDE plugin to use idiomatic patterns.
+
 ## Adding Telemetry
 
 ### Where to Edit
