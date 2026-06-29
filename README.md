@@ -1,14 +1,12 @@
 # AWS Toolkit Common
 
-This repo contains shared components for the AWS Toolkits for
+This repo contains shared components for the AWS Toolkits for:
 
-* [Jetbrains](https://github.com/aws/aws-toolkit-jetbrains)
-* [VSCode](https://github.com/aws/aws-toolkit-vscode/)
+* [JetBrains](https://github.com/aws/aws-toolkit-jetbrains)
+* [VS Code](https://github.com/aws/aws-toolkit-vscode/)
 * [Visual Studio](https://github.com/aws/aws-toolkit-visual-studio)
 
-Contributers looking to contribute to the above projects should consult the contributing guide 
-on the repos they are interested in: this repo contains internal components that most contributers
-If you're looking to contribute to the above projects, consult their respective CONTRIBUTING.md docs: this repo contains internal components that most contributors would find boring.
+If you're looking to contribute to the above projects, consult their respective CONTRIBUTING.md docs. This repo contains internal shared components that most contributors would find uninteresting.
 
 ## Components
 
