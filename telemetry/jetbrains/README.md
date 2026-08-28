@@ -1,4 +1,8 @@
-# Usage
+# Telemetry Generator for JetBrains
+
+This module generates telemetry classes for JetBrains-based AWS Toolkit IDEs from shared telemetry definitions.
+
+## Usage
 
 1. To your buildSrc build.gradle, add:
     ```groovy
