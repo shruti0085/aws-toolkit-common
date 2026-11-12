@@ -13,6 +13,22 @@ good deliverability (messages reach the inbox, not spam), and horizontal
 scalability for both low-latency transactional mail and high-volume bulk
 campaigns.
 
+### Purpose and scope
+
+This document is intended to align engineers on the overall approach before
+implementation begins. It covers:
+
+- Functional and non-functional requirements
+- The high-level architecture and core components (API layer, message queue,
+  worker pool, SMTP delivery layer, and database)
+- The hard parts of running an email system: deliverability, bounce and
+  complaint handling, retries, idempotency, and rate limiting
+- A sketch of the data model and a suggested starting stack
+- Open questions and next steps
+
+It is a design sketch, not a final specification. Detailed API schemas,
+operational runbooks, and capacity planning are out of scope.
+
 ## Requirements
 
 ### Functional requirements
