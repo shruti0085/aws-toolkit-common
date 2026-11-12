@@ -29,6 +29,18 @@ implementation begins. It covers:
 It is a design sketch, not a final specification. Detailed API schemas,
 operational runbooks, and capacity planning are out of scope.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [High-Level Architecture](#high-level-architecture)
+- [Core Components](#core-components)
+- [The Hard Parts](#the-hard-parts)
+- [Data Model Sketch](#data-model-sketch)
+- [Suggested Starting Stack](#suggested-starting-stack)
+- [Open Questions](#open-questions)
+- [Next Steps](#next-steps)
+
 ## Requirements
 
 ### Functional requirements
